@@ -720,7 +720,7 @@
 // ============================================================
 // CONFIGURATION — Replace with your Google Apps Script Web App URL
 // ============================================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzhEERfx8csDxKGBSyt4W928ZB0WDWj_6vv2sQnCd5Sf_6EjwmCxL6Uy0dKVaopi2QDpw/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUfgV06hYE73HDqOFQ_xOQo0KevYuuG1GxjZbCupABzgxmYLr54pS9YGekolmkBYJR2Q/exec';
 // ============================================================
 
 let currentLang = 'en';
@@ -884,17 +884,39 @@ document.getElementById('feedbackForm').addEventListener('submit', async functio
   };
 
   try {
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
+    // Use a hidden iframe + form to avoid CORS issues with Google Apps Script
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SCRIPT_URL;
+    form.target = 'hidden-iframe';
+    
+    // Create hidden iframe
+    let iframe = document.getElementById('hidden-iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.name = 'hidden-iframe';
+      iframe.id = 'hidden-iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
 
-    // no-cors means we can't read the response, so we assume success
-    document.getElementById('formContainer').style.display = 'none';
-    document.getElementById('thankYou').classList.add('visible');
-    document.querySelector('.progress-fill').style.width = '100%';
+    // Add data as hidden fields
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(data);
+    form.appendChild(input);
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    // Show success after a short delay
+    setTimeout(() => {
+      document.getElementById('formContainer').style.display = 'none';
+      document.getElementById('thankYou').classList.add('visible');
+      document.querySelector('.progress-fill').style.width = '100%';
+    }, 1500);
   } catch (err) {
     showToast(currentLang === 'ar' ? 'حدث خطأ. يرجى المحاولة مرة أخرى.' : 'Something went wrong. Please try again.');
     btn.classList.remove('loading');
