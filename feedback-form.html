@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client Service Feedback | تقييم الخدمة</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --slate-900: #0f172a;
+    --slate-700: #334155;
+    --slate-500: #64748b;
+    --slate-300: #cbd5e1;
+    --slate-100: #f1f5f9;
+    --slate-50: #f8fafc;
+    --white: #ffffff;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-light: #dbeafe;
+    --gold: #d97706;
+    --gold-light: #fef3c7;
+    --star-empty: #e2e8f0;
+    --star-filled: #f59e0b;
+    --success: #059669;
+    --success-light: #d1fae5;
+    --error: #dc2626;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--slate-50);
+    color: var(--slate-700);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  body[dir="rtl"] {
+    font-family: 'Noto Sans Arabic', 'DM Sans', sans-serif;
+  }
+
+  /* --- Top Bar --- */
+  .top-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--slate-100);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+
+  .brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--slate-900);
+    letter-spacing: -0.02em;
+  }
+
+  .lang-toggle {
+    display: flex;
+    background: var(--slate-100);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--slate-300);
+  }
+
+  .lang-btn {
+    padding: 6px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--slate-500);
+    transition: all 0.25s ease;
+    font-family: inherit;
+  }
+
+  .lang-btn.active {
+    background: var(--accent);
+    color: var(--white);
+  }
+
+  /* --- Progress --- */
+  .progress-bar {
+    height: 3px;
+    background: var(--slate-100);
+    position: sticky;
+    top: 53px;
+    z-index: 99;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+    border-radius: 0 3px 3px 0;
+  }
+
+  /* --- Container --- */
+  .container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* --- Header --- */
+  .form-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .form-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    margin-bottom: 8px;
+    letter-spacing: -0.03em;
+  }
+
+  .form-header p {
+    color: var(--slate-500);
+    font-size: 0.95rem;
+  }
+
+  .time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 6px 14px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .time-badge svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* --- Steps / Sections --- */
+  .form-section {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.04);
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  .form-section:nth-child(2) { animation-delay: 0.1s; }
+  .form-section:nth-child(3) { animation-delay: 0.2s; }
+  .form-section:nth-child(4) { animation-delay: 0.3s; }
+  .form-section:nth-child(5) { animation-delay: 0.4s; }
+
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    margin-bottom: 20px;
+    letter-spacing: -0.01em;
+  }
+
+  /* --- Form Elements --- */
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--slate-700);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--slate-300);
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-family: inherit;
+    color: var(--slate-900);
+    background: var(--white);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6l3.5 4 3.5-4z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  body[dir="rtl"] select {
+    background-position: left 12px center;
+    padding-right: 14px;
+    padding-left: 36px;
+  }
+
+  /* --- Star Rating --- */
+  .rating-group {
+    margin-bottom: 24px;
+  }
+
+  .rating-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .rating-label {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--slate-700);
+    margin-bottom: 8px;
+  }
+
+  .stars {
+    display: flex;
+    gap: 6px;
+    direction: ltr;
+  }
+
+  .star {
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: none;
+    padding: 0;
+    transition: transform 0.15s ease;
+  }
+
+  .star:hover {
+    transform: scale(1.2);
+  }
+
+  .star svg {
+    width: 36px;
+    height: 36px;
+    fill: var(--star-empty);
+    transition: fill 0.2s ease;
+  }
+
+  .star.filled svg {
+    fill: var(--star-filled);
+  }
+
+  .star-text {
+    font-size: 0.78rem;
+    color: var(--slate-500);
+    margin-top: 4px;
+    min-height: 18px;
+  }
+
+  /* --- Consent Toggle --- */
+  .consent-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .toggle-switch {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--slate-300);
+    border-radius: 26px;
+    cursor: pointer;
+    transition: background 0.25s ease;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: var(--white);
+    border-radius: 50%;
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background: var(--accent);
+  }
+
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(22px);
+  }
+
+  body[dir="rtl"] .toggle-slider::before {
+    left: auto;
+    right: 3px;
+  }
+
+  body[dir="rtl"] .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(-22px);
+  }
+
+  .consent-label {
+    font-size: 0.85rem;
+    color: var(--slate-700);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .optional-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--slate-500);
+    background: var(--slate-100);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  body[dir="rtl"] .optional-badge {
+    margin-left: 0;
+    margin-right: 8px;
+  }
+
+  /* --- Submit --- */
+  .submit-section {
+    text-align: center;
+    padding-top: 8px;
+  }
+
+  .submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 48px;
+    background: var(--accent);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  }
+
+  .submit-btn:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 4px 16px rgba(37,99,235,0.4);
+    transform: translateY(-1px);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .submit-btn .spinner {
+    display: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  .submit-btn.loading .spinner { display: block; }
+  .submit-btn.loading .btn-text { display: none; }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* --- Thank You Page --- */
+  .thank-you {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .thank-you.visible {
+    display: block;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .check-circle {
+    width: 80px;
+    height: 80px;
+    background: var(--success-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+
+  .check-circle svg {
+    width: 40px;
+    height: 40px;
+    stroke: var(--success);
+    stroke-width: 2.5;
+    fill: none;
+  }
+
+  .thank-you h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    margin-bottom: 10px;
+  }
+
+  .thank-you p {
+    color: var(--slate-500);
+    font-size: 1rem;
+    max-width: 400px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .thank-you .brand-footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--slate-100);
+    font-size: 0.85rem;
+    color: var(--slate-500);
+    font-weight: 500;
+  }
+
+  /* --- Error --- */
+  .error-msg {
+    color: var(--error);
+    font-size: 0.8rem;
+    margin-top: 4px;
+    display: none;
+  }
+
+  .field.invalid input,
+  .field.invalid select,
+  .field.invalid textarea {
+    border-color: var(--error);
+  }
+
+  .field.invalid .error-msg {
+    display: block;
+  }
+
+  /* --- Toast --- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--error);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 200;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .toast.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* --- Responsive --- */
+  @media (max-width: 480px) {
+    .container { padding: 24px 16px 60px; }
+    .form-section { padding: 24px 20px; }
+    .form-header h1 { font-size: 1.4rem; }
+    .submit-btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body dir="ltr">
+
+<!-- Top Bar -->
+<div class="top-bar">
+  <div class="brand">Post Service Feedback</div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('ar')">عربي</button>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- Form -->
+<div class="container" id="formContainer">
+  <div class="form-header">
+    <h1 data-en="Client Service Feedback" data-ar="تقييم خدمة العملاء"></h1>
+    <p data-en="Your feedback helps us improve and grow. Thank you for taking the time." data-ar="ملاحظاتكم تساعدنا على التحسين والتطوير. شكراً لوقتكم."></p>
+    <div class="time-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <span data-en="Less than 10 minutes" data-ar="أقل من ١٠ دقائق"></span>
+    </div>
+  </div>
+
+  <form id="feedbackForm" novalidate>
+
+    <!-- Section 1: Client Info -->
+    <div class="form-section">
+      <div class="section-label" data-en="Step 1 of 4" data-ar="الخطوة ١ من ٤"></div>
+      <div class="section-title" data-en="Your Information" data-ar="معلوماتكم"></div>
+
+      <div class="field" data-required>
+        <label data-en="Company Name" data-ar="اسم الشركة"></label>
+        <input type="text" name="company" data-placeholder-en="e.g. ABC Corporation" data-placeholder-ar="مثال: شركة أ ب ج">
+        <div class="error-msg" data-en="This field is required" data-ar="هذا الحقل مطلوب"></div>
+      </div>
+
+      <div class="field" data-required data-type="email">
+        <label data-en="Email Address" data-ar="البريد الإلكتروني"></label>
+        <input type="email" name="email" data-placeholder-en="name@company.com" data-placeholder-ar="name@company.com">
+        <div class="error-msg" data-en="Please enter a valid email" data-ar="يرجى إدخال بريد إلكتروني صحيح"></div>
+      </div>
+
+      <div class="field" data-required>
+        <label data-en="Project / Contract Name" data-ar="اسم المشروع / العقد"></label>
+        <input type="text" name="project" data-placeholder-en="e.g. Leadership Development Program" data-placeholder-ar="مثال: برنامج تطوير القيادة">
+        <div class="error-msg" data-en="This field is required" data-ar="هذا الحقل مطلوب"></div>
+      </div>
+
+      <div class="field" data-required>
+        <label data-en="Service Provided" data-ar="الخدمة المقدمة"></label>
+        <select name="service">
+          <option value="" data-en="Select a service..." data-ar="اختر الخدمة..."></option>
+          <option value="Training Program Design" data-en="Training Program Design" data-ar="تصميم البرامج التدريبية"></option>
+          <option value="Training Program Development" data-en="Training Program Development (Kits)" data-ar="تطوير البرامج التدريبية (الحقائب)"></option>
+          <option value="eLearning Course Development" data-en="eLearning Course Development" data-ar="تطوير الدورات الإلكترونية"></option>
+          <option value="Instructional Design Consulting" data-en="Instructional Design Consulting" data-ar="استشارات التصميم التعليمي"></option>
+          <option value="Gamified Learning Design" data-en="Gamified Learning Design" data-ar="تصميم التعلم بالألعاب"></option>
+          <option value="Workshop Facilitation" data-en="Workshop Facilitation" data-ar="تيسير ورش العمل"></option>
+        </select>
+        <div class="error-msg" data-en="Please select a service" data-ar="يرجى اختيار الخدمة"></div>
+      </div>
+    </div>
+
+    <!-- Section 2: Ratings -->
+    <div class="form-section">
+      <div class="section-label" data-en="Step 2 of 4" data-ar="الخطوة ٢ من ٤"></div>
+      <div class="section-title" data-en="Rate Your Experience" data-ar="قيّم تجربتكم"></div>
+
+      <div class="rating-group" data-rating="quality">
+        <div class="rating-label" data-en="Overall Quality of Deliverables" data-ar="الجودة الشاملة للمخرجات"></div>
+        <div class="stars" data-name="quality"></div>
+        <div class="star-text"></div>
+      </div>
+
+      <div class="rating-group" data-rating="communication">
+        <div class="rating-label" data-en="Communication & Responsiveness" data-ar="التواصل والاستجابة"></div>
+        <div class="stars" data-name="communication"></div>
+        <div class="star-text"></div>
+      </div>
+
+      <div class="rating-group" data-rating="timeliness">
+        <div class="rating-label" data-en="Timeliness & Deadline Adherence" data-ar="الالتزام بالمواعيد"></div>
+        <div class="stars" data-name="timeliness"></div>
+        <div class="star-text"></div>
+      </div>
+
+      <div class="rating-group" data-rating="professionalism">
+        <div class="rating-label" data-en="Professionalism & Expertise" data-ar="الاحترافية والخبرة"></div>
+        <div class="stars" data-name="professionalism"></div>
+        <div class="star-text"></div>
+      </div>
+
+      <div class="rating-group" data-rating="value">
+        <div class="rating-label" data-en="Value for Investment" data-ar="القيمة مقابل الاستثمار"></div>
+        <div class="stars" data-name="value"></div>
+        <div class="star-text"></div>
+      </div>
+    </div>
+
+    <!-- Section 3: Open-Ended -->
+    <div class="form-section">
+      <div class="section-label" data-en="Step 3 of 4" data-ar="الخطوة ٣ من ٤"></div>
+      <div class="section-title" data-en="Your Thoughts" data-ar="آرائكم"></div>
+
+      <div class="field">
+        <label data-en="What did you value most about working with us?" data-ar="ما أكثر شيء قدّرتموه في التعامل معنا؟"></label>
+        <textarea name="best_part" data-placeholder-en="Share what stood out..." data-placeholder-ar="شاركونا ما لفت انتباهكم..."></textarea>
+      </div>
+
+      <div class="field">
+        <label data-en="What could we improve for future projects?" data-ar="ما الذي يمكننا تحسينه في المشاريع المستقبلية؟"></label>
+        <textarea name="improvement" data-placeholder-en="Your suggestions help us grow..." data-placeholder-ar="اقتراحاتكم تساعدنا على التطوير..."></textarea>
+      </div>
+
+      <div class="field">
+        <label data-en="Would you recommend our services? Why?" data-ar="هل توصون بخدماتنا؟ لماذا؟"></label>
+        <textarea name="recommendation" data-placeholder-en="Let us know..." data-placeholder-ar="أخبرونا..."></textarea>
+      </div>
+    </div>
+
+    <!-- Section 4: Testimonial -->
+    <div class="form-section">
+      <div class="section-label" data-en="Step 4 of 4" data-ar="الخطوة ٤ من ٤"></div>
+      <div class="section-title"><span data-en="Testimonial" data-ar="شهادة العميل"></span> <span class="optional-badge" data-en="Optional" data-ar="اختياري"></span></div>
+
+      <div class="field">
+        <label data-en="Would you like to share a testimonial about your experience?" data-ar="هل تودّ مشاركة شهادة عن تجربتكم؟"></label>
+        <textarea name="testimonial" data-placeholder-en="Share your testimonial here..." data-placeholder-ar="شاركونا شهادتكم هنا..."></textarea>
+      </div>
+
+      <div class="field">
+        <label data-en="May we share your testimonial for marketing purposes?" data-ar="هل تسمحون لنا بمشاركة شهادتكم لأغراض تسويقية؟"></label>
+        <div class="consent-group">
+          <label class="toggle-switch">
+            <input type="checkbox" name="testimonial_consent">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="consent-label" data-en="Yes, I consent" data-ar="نعم، أوافق"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-section">
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <span class="btn-text" data-en="Submit Feedback" data-ar="إرسال التقييم"></span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Thank You Page -->
+<div class="thank-you" id="thankYou">
+  <div class="check-circle">
+    <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+  </div>
+  <h2 data-en="Thank You!" data-ar="شكراً لكم!"></h2>
+  <p data-en="Your feedback has been received successfully. We truly appreciate your time and insights — they help us deliver even better results." data-ar="تم استلام تقييمكم بنجاح. نقدّر حقاً وقتكم وملاحظاتكم — فهي تساعدنا على تقديم نتائج أفضل."></p>
+  <div class="brand-footer">Yossef Abdallah</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURATION — Replace with your Google Apps Script Web App URL
+// ============================================================
+const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URLhttps://script.google.com/macros/s/AKfycbzhEERfx8csDxKGBSyt4W928ZB0WDWj_6vv2sQnCd5Sf_6EjwmCxL6Uy0dKVaopi2QDpw/exec';
+// ============================================================
+
+let currentLang = 'en';
+let ratings = { quality: 0, communication: 0, timeliness: 0, professionalism: 0, value: 0 };
+
+const starLabels = {
+  en: ['', 'Poor', 'Below Average', 'Average', 'Good', 'Excellent'],
+  ar: ['', 'ضعيف', 'أقل من المتوسط', 'متوسط', 'جيد', 'ممتاز']
+};
+
+// --- Language Toggle ---
+function setLang(lang) {
+  currentLang = lang;
+  document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', (lang === 'ar' && btn.textContent === 'عربي') || (lang === 'en' && btn.textContent === 'EN'));
+  });
+
+  document.querySelectorAll('[data-en]').forEach(el => {
+    if (el.tagName === 'OPTION') {
+      el.textContent = el.getAttribute(`data-${lang}`);
+    } else {
+      el.textContent = el.getAttribute(`data-${lang}`);
+    }
+  });
+
+  document.querySelectorAll(`[data-placeholder-${lang}]`).forEach(el => {
+    el.placeholder = el.getAttribute(`data-placeholder-${lang}`);
+  });
+
+  // Update star texts
+  document.querySelectorAll('.rating-group').forEach(group => {
+    const name = group.dataset.rating;
+    const val = ratings[name];
+    group.querySelector('.star-text').textContent = val ? starLabels[currentLang][val] : '';
+  });
+}
+
+// --- Star Ratings ---
+function buildStars() {
+  document.querySelectorAll('.stars').forEach(container => {
+    const name = container.dataset.name;
+    container.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'star';
+      btn.dataset.value = i;
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+      btn.addEventListener('click', () => {
+        ratings[name] = i;
+        updateStars(container, i);
+        const group = container.closest('.rating-group');
+        group.querySelector('.star-text').textContent = starLabels[currentLang][i];
+        updateProgress();
+      });
+      container.appendChild(btn);
+    }
+  });
+}
+
+function updateStars(container, value) {
+  container.querySelectorAll('.star').forEach(star => {
+    star.classList.toggle('filled', parseInt(star.dataset.value) <= value);
+  });
+}
+
+// --- Progress Bar ---
+function updateProgress() {
+  const form = document.getElementById('feedbackForm');
+  let filled = 0;
+  let total = 0;
+
+  // Text inputs & select
+  form.querySelectorAll('input[name], select[name]').forEach(el => {
+    total++;
+    if (el.value.trim()) filled++;
+  });
+
+  // Ratings
+  Object.values(ratings).forEach(v => {
+    total++;
+    if (v > 0) filled++;
+  });
+
+  // Textareas
+  form.querySelectorAll('textarea').forEach(el => {
+    total++;
+    if (el.value.trim()) filled++;
+  });
+
+  const pct = Math.round((filled / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// --- Validation ---
+function validate() {
+  let valid = true;
+  const form = document.getElementById('feedbackForm');
+
+  form.querySelectorAll('.field[data-required]').forEach(field => {
+    const input = field.querySelector('input, select, textarea');
+    let isValid = true;
+
+    if (field.dataset.type === 'email') {
+      isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value.trim());
+    } else {
+      isValid = input.value.trim() !== '';
+    }
+
+    field.classList.toggle('invalid', !isValid);
+    if (!isValid) valid = false;
+  });
+
+  // Check at least one rating
+  const hasRating = Object.values(ratings).some(v => v > 0);
+  if (!hasRating) {
+    showToast(currentLang === 'ar' ? 'يرجى تقييم عنصر واحد على الأقل' : 'Please rate at least one item');
+    valid = false;
+  }
+
+  return valid;
+}
+
+// --- Toast ---
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 3500);
+}
+
+// --- Submit ---
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  if (!validate()) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  const data = {
+    timestamp: new Date().toISOString(),
+    language: currentLang,
+    company: this.company.value.trim(),
+    email: this.email.value.trim(),
+    project: this.project.value.trim(),
+    service: this.service.value,
+    rating_quality: ratings.quality,
+    rating_communication: ratings.communication,
+    rating_timeliness: ratings.timeliness,
+    rating_professionalism: ratings.professionalism,
+    rating_value: ratings.value,
+    best_part: this.best_part.value.trim(),
+    improvement: this.improvement.value.trim(),
+    recommendation: this.recommendation.value.trim(),
+    testimonial: this.testimonial.value.trim(),
+    testimonial_consent: this.testimonial_consent.checked ? 'Yes' : 'No'
+  };
+
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    // no-cors means we can't read the response, so we assume success
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('thankYou').classList.add('visible');
+    document.querySelector('.progress-fill').style.width = '100%';
+  } catch (err) {
+    showToast(currentLang === 'ar' ? 'حدث خطأ. يرجى المحاولة مرة أخرى.' : 'Something went wrong. Please try again.');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+});
+
+// --- Input listeners for progress ---
+document.querySelectorAll('#feedbackForm input, #feedbackForm select, #feedbackForm textarea').forEach(el => {
+  el.addEventListener('input', updateProgress);
+  el.addEventListener('change', updateProgress);
+});
+
+// --- Clear validation on input ---
+document.querySelectorAll('.field[data-required] input, .field[data-required] select').forEach(el => {
+  el.addEventListener('input', () => el.closest('.field').classList.remove('invalid'));
+  el.addEventListener('change', () => el.closest('.field').classList.remove('invalid'));
+});
+
+// --- Init ---
+buildStars();
+setLang('en');
+</script>
+</body>
+</html>
